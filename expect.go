@@ -95,6 +95,14 @@ func VerboseWriter(w io.Writer) Option {
 	}
 }
 
+func OutputWriter(w io.Writer) Option{
+	return func(e *GExpect) Option {
+		prev := e.outputWriter
+		e.outputWriter = w
+		return OutputWriter(prev)
+	}
+}
+
 // NoCheck turns off the Expect alive checks.
 func NoCheck() Option {
 	return changeChk(func(*GExpect) bool {
@@ -518,6 +526,9 @@ type GExpect struct {
 	verbose bool
 	// verboseWriter if set specifies where to write verbose information.
 	verboseWriter io.Writer
+	// outputWriter if set specifies where to write output of the spawned command.
+	outputWriter io.Writer
+
 
 	// mu protects the output buffer. It must be held for any operations on out.
 	mu  sync.Mutex
@@ -1066,11 +1077,18 @@ func (e *GExpect) Send(in string) error {
 		}
 		log.Info("Sent: %q", in)
 	}
+	if e.outputWriter != nil {
+		fmt.Fprintf(e.outputWriter, term.Blue(in).String())
+	}
 	return nil
 }
 
 // runcmd executes the command and Wait for the return value.
 func (e *GExpect) runcmd(res chan error) {
+	if e.outputWriter != nil {
+		e.cmd.Stdout = io.MultiWriter(e.pty.Slave, e.outputWriter)
+		e.cmd.Stderr = io.MultiWriter(e.pty.Slave, e.outputWriter)
+	}
 	if err := e.cmd.Start(); err != nil {
 		res <- err
 		return

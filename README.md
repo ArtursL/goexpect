@@ -32,6 +32,11 @@ Using this option will start writing verbose output to the provided io.Writer in
 
 See the [ExampleVerbose](https://github.com/google/goexpect/blob/5c8d637b0287a2ae7bb805554056728c453871e4/expect_test.go#L585) code for an example of how to use this. 
 
+
+### OutputWriter
+
+The OutputWriter option allows to write (colorized) output and input of the session to an io.Writer
+
 ### NoCheck
 
 The Go Expecter periodically checks that the spawned process/ssh/session/telnet etc. session is alive.
